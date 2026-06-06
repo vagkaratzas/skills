@@ -11,8 +11,8 @@ description: |
 
 # Writing Local Nextflow Modules
 
-Local modules live alongside nf-core modules in `modules/local/<module_name>/` and follow the same
-structural conventions, but without nf-core linting requirements (`nextflow lint` only).
+If following nf-core standards, local modules live alongside nf-core modules in `modules/local/<module_name>/`
+and follow the same structural conventions, but without nf-core linting requirements (`nextflow lint` only).
 
 ## Directory scaffold
 
