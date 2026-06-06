@@ -249,7 +249,7 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert snapshot(sanitizeOutput(process.out)).match() }
+                { assert snapshot(process.out).match() }
             )
         }
     }
@@ -273,7 +273,7 @@ nextflow_process {
         then {
             assertAll(
                 { assert process.success },
-                { assert snapshot(sanitizeOutput(process.out)).match() }
+                { assert snapshot(process.out).match() }
             )
         }
     }
@@ -298,7 +298,7 @@ on output stability — try option 1 first and only downgrade when it proves fla
 
 **1. Full snapshot (default — always try first):**
 ```groovy
-{ assert snapshot(sanitizeOutput(process.out)).match() }
+{ assert snapshot(process.out).match() }
 ```
 
 **2. Per-channel + line count** — when content varies but file length is stable:
@@ -330,7 +330,7 @@ tool's output spec, never incidental content.
 ```
 
 **Rules:**
-- Stub tests always use option 1 (`sanitizeOutput(process.out)`) regardless of real test strategy.
+- Stub tests always use option 1 (`process.out`) regardless of real test strategy.
 - When using options 2–4, assert versions with `process.out.findAll { key, val -> key.startsWith("versions") }` — never `path(process.out.versions[0]).yaml` or any other form.
 - Never snapshot empty-file md5sums (`d41d8cd98f00b204e9800998ecf8427e`). If a channel captures an empty file, the tool produced no real output — fix the test data or exclude that channel.
 
@@ -387,7 +387,7 @@ Place files directly in `tests/fixtures/` and commit them alongside the module.
 - [ ] Stub block only touches/creates output files — no script logic
 - [ ] `environment.yml` has pinned versions
 - [ ] `tests/fixtures/` contains minimal real data
-- [ ] Snapshot strategy chosen per assertion priority (option 1 tried first); stubs always use `sanitizeOutput(process.out)`
+- [ ] Snapshot strategy chosen per assertion priority (option 1 tried first); stubs always use `process.out`
 - [ ] No empty-file md5sums (`d41d8cd98f00b204e9800998ecf8427e`) in snapshots
 - [ ] Snapshot generated with `--profile +<profile> --update-snapshot`
 - [ ] `nextflow lint` passes (not `nf-core lint`)
