@@ -1,5 +1,5 @@
 ---
-name: writing-nextflow-local-modules
+name: write-nextflow-local-modules
 description: |
   How to create or update local Nextflow modules for any pipeline.
   Use this skill whenever the user asks to create, write, scaffold, add, or update a local
