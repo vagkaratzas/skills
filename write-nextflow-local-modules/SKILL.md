@@ -111,6 +111,31 @@ touch ${prefix}.ext
 For directories: `mkdir -p dir && touch dir/placeholder`
 For compressed files: `echo "" | gzip > ${prefix}.gz`
 
+### Script section: bash commands vs bin/ scripts
+
+The script block either runs bash commands inline (e.g. `samtools sort ...`) or calls a script
+from the pipeline's `bin/` directory. Nextflow adds `bin/` to `PATH`, so scripts are called by name:
+
+```nextflow
+script:
+def args   = task.ext.args   ?: ''
+def prefix = task.ext.prefix ?: "${meta.id}"
+"""
+my_script.py \\
+    --input  ${input_file} \\
+    --output ${prefix}.tsv \\
+    ${args}
+"""
+```
+
+**Rules for `bin/` scripts:**
+- Executable: `chmod +x bin/my_script.py`
+- Shebang on line 1: `#!/usr/bin/env python3` / `#!/usr/bin/env Rscript` / `#!/usr/bin/env bash`
+- Dependencies declared in `environment.yml` and the container.
+- Name after what it does, not after the module — one script may serve multiple modules.
+
+---
+
 ### Container selection
 For Python-based local scripts, prefer Seqera Wave containers:
 - Docker: `community.wave.seqera.io/library/<pkg1>_<pkg2>:<hash>`
@@ -180,15 +205,7 @@ output:
           description: The expression to obtain the version of the tool
 topics:
   versions:
-    - - ${task.process}:
-          type: string
-          description: The name of the process
-      - tool_name:
-          type: string
-          description: The name of the tool
-      - tool --version 2>&1 | sed 's/tool //':
-          type: eval
-          description: The expression to obtain the version of the tool
+    # identical structure to versions_<tool>: output blocks above — one entry per tool
 authors:
   - "@vagkaratzas"
 maintainers:
@@ -258,17 +275,7 @@ nextflow_process {
 
         options "-stub"
 
-        when {
-            process {
-                """
-                input[0] = channel.of([
-                    [ id: 'test' ],
-                    file("${moduleDir}/tests/fixtures/input.ext", checkIfExists: true)
-                ])
-                input[1] = 0.9
-                """
-            }
-        }
+        // identical when{} block as the real test above
 
         then {
             assertAll(
@@ -336,15 +343,13 @@ tool's output spec, never incidental content.
 
 ### Environment setup
 
-Ask the user which profile they use: **singularity**, **docker**, or **conda**.
+Ask the user which profile they use, then apply:
 
-- **Singularity**: ask for their `NXF_SINGULARITY_CACHEDIR` path before running anything — do not
-  assume or guess a default (wrong paths pull images to the wrong location). Once confirmed:
-  ```bash
-  export NXF_SINGULARITY_CACHEDIR="<path provided by user>"
-  ```
-- **Docker**: no extra env var needed; Docker daemon must be running.
-- **Conda**: no extra env var needed; conda must be on PATH.
+| Profile | Requirement |
+|---|---|
+| singularity | Ask for `NXF_SINGULARITY_CACHEDIR` — do not assume a default; `export NXF_SINGULARITY_CACHEDIR="<user path>"` |
+| docker | Docker daemon running — no extra env var |
+| conda | conda on PATH — no extra env var |
 
 ### Test commands
 
@@ -386,6 +391,7 @@ Place files directly in `tests/fixtures/` and commit them alongside the module.
 - [ ] `meta.yml` has `versions_<tool>:` output sections and a `topics: versions:` block (no `versions.yml` entry)
 - [ ] Stub block only touches/creates output files — no script logic
 - [ ] `environment.yml` has pinned versions
+- [ ] If the module calls a `bin/` script: file exists, has a shebang, and is executable (`chmod +x`)
 - [ ] `tests/fixtures/` contains minimal real data
 - [ ] Snapshot strategy chosen per assertion priority (option 1 tried first); stubs always use `process.out`
 - [ ] No empty-file md5sums (`d41d8cd98f00b204e9800998ecf8427e`) in snapshots
