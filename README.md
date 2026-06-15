@@ -28,6 +28,8 @@ Helps agents pick the most token-efficient tool for codebase exploration, symbol
 
 **Triggers on:** "save tokens", "use fewer tokens", "explain this codebase", "find callers", "trace this call path", verbose tests, builds, git output, or grep/listing output.
 
+Based on [this](https://github.com/vagkaratzas/token-consumption-benchmark) Claude Code (Opus 4.8 + ultracode) benchmark.
+
 ---
 
 ### [write-comments](write-comments/)
