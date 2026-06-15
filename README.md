@@ -23,6 +23,13 @@ Audits a Python project's dependencies for security vulnerabilities and outdated
 
 ---
 
+### [token-saviour](token-saviour/)
+Helps agents pick the most token-efficient tool for codebase exploration, symbol lookup, verbose command output, and long prose responses. Routes work to serena, graphify, rtk, caveman, or plain shell tools based on where tokens are actually being spent.
+
+**Triggers on:** "save tokens", "use fewer tokens", "explain this codebase", "find callers", "trace this call path", verbose tests, builds, git output, or grep/listing output.
+
+---
+
 ### [write-comments](write-comments/)
 Guides comment-writing based on John Ousterhout's *A Philosophy of Software Design*: comments should explain *why*, not *what*. Covers module-level, function-level, and inline comments. Pushes back on the "good code doesn't need comments" misconception.
 
