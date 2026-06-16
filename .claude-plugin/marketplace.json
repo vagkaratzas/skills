@@ -1,8 +1,8 @@
 {
-  "name": "vagkaratzas",
+  "name": "vagkaratzas-skills",
   "description": "Marketplace for the skills plugin",
   "interface": {
-    "displayName": "vagkaratzas"
+    "displayName": "vagkaratzas Skills"
   },
   "owner": {
     "name": "Evangelos Karatzas",
