@@ -10,8 +10,10 @@ Install the full plugin from the marketplace:
 
 ```bash
 claude plugin marketplace add vagkaratzas/skills
-claude plugin install skills@vagkaratzas
+claude plugin install skills@vagkaratzas-skills
 ```
+
+The marketplace registers as `vagkaratzas-skills`, so it can coexist with the `vagkaratzas` marketplace used by other repositories.
 
 Then start a new session so Claude Code loads the skills.
 
@@ -21,10 +23,49 @@ Codex can use the same marketplace repository. Add the marketplace, then install
 
 ```bash
 codex plugin marketplace add vagkaratzas/skills
-codex plugin add skills@vagkaratzas
+codex plugin add skills@vagkaratzas-skills
 ```
 
 Then start a new Codex session so the skills are available.
+
+### Updating
+
+Claude Code:
+
+```bash
+claude plugin marketplace update vagkaratzas-skills
+claude plugin update skills@vagkaratzas-skills
+```
+
+Codex:
+
+```bash
+codex plugin marketplace upgrade vagkaratzas-skills
+codex plugin remove skills@vagkaratzas-skills
+codex plugin add skills@vagkaratzas-skills
+```
+
+### Reinstalling the Marketplace
+
+Use this if the marketplace source itself changed or the local marketplace snapshot is stale.
+
+Claude Code:
+
+```bash
+claude plugin remove skills@vagkaratzas-skills
+claude plugin marketplace remove vagkaratzas-skills
+claude plugin marketplace add vagkaratzas/skills
+claude plugin install skills@vagkaratzas-skills
+```
+
+Codex:
+
+```bash
+codex plugin remove skills@vagkaratzas-skills
+codex plugin marketplace remove vagkaratzas-skills
+codex plugin marketplace add vagkaratzas/skills
+codex plugin add skills@vagkaratzas-skills
+```
 
 ### One Skill Only
 
