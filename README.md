@@ -69,27 +69,44 @@ codex plugin add skills@vagkaratzas-skills
 
 ### One Skill Only
 
-Plugin installs are bundle installs; the current Claude Code and Codex plugin commands do not expose a `--token-saviour`-style flag for selecting one skill from a multi-skill plugin.
+Plugin installs are bundle installs: installing this plugin copies every skill from this repo into the agent's skill set. The current Claude Code and Codex plugin commands do not expose a `--skill-name`-style flag for selecting one skill from a multi-skill plugin.
 
-To install only one skill, copy that skill directory directly into your agent skills folder. For example, to install only `token-saviour`:
+To install only one skill, either copy that skill directory manually from a local clone, or ask your agent to fetch only `skills/<name>/` from this repository and place it in your agent skills folder.
 
-```bash
-cp -r skills/token-saviour ~/.agents/skills/
-```
-
-For Claude Code only:
+Manual copy from a local clone:
 
 ```bash
-cp -r skills/token-saviour ~/.claude/skills/
+SKILL_NAME="<name>"
+AGENT_SKILLS_DIR="$HOME/.claude/skills"  # or ~/.codex/skills, ~/.agents/skills
+
+mkdir -p "$AGENT_SKILLS_DIR"
+cp -r "skills/$SKILL_NAME" "$AGENT_SKILLS_DIR/"
 ```
 
-For Codex only:
+Fetch a single skill without cloning the repo:
 
 ```bash
-cp -r skills/token-saviour ~/.codex/skills/
+SKILL_NAME="<name>"
+AGENT_SKILLS_DIR="$HOME/.claude/skills"  # or ~/.codex/skills, ~/.agents/skills
+
+mkdir -p "$AGENT_SKILLS_DIR/$SKILL_NAME"
+
+curl -fsSL \
+  "https://raw.githubusercontent.com/vagkaratzas/skills/main/skills/$SKILL_NAME/SKILL.md" \
+  -o "$AGENT_SKILLS_DIR/$SKILL_NAME/SKILL.md"
 ```
 
-Then use the skill naturally in conversation. Each skill's description tells the agentic platform when to trigger it automatically.
+If the skill has bundled files, create the same subdirectories locally and fetch each file by its repo path. For example:
+
+```bash
+mkdir -p "$AGENT_SKILLS_DIR/$SKILL_NAME/references"
+
+curl -fsSL \
+  "https://raw.githubusercontent.com/vagkaratzas/skills/main/skills/$SKILL_NAME/references/<file>.md" \
+  -o "$AGENT_SKILLS_DIR/$SKILL_NAME/references/<file>.md"
+```
+
+Skill paths live under `skills/<name>/` in this repo, not at the repository root. There is no bulk single-directory download over `raw.githubusercontent.com`; use one `curl` per file, copy from a local clone, or ask an agent to fetch the skill directory for you. Start a new agent session after installation so the skill is loaded.
 
 ---
 
