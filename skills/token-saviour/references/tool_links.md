@@ -15,8 +15,8 @@ and stack cleanly on top.
 |------|-----------------|---------------------|--------|-------|
 | [serena](https://github.com/oraios/serena) | code-read input — symbol comprehension **and edits** | `uv tool install -p 3.13 serena-agent` then `serena init` | `serena --help` | Requires `uv`; language-server deps may be needed per language. Configure the MCP client after install. Does broad reading plus semantic edits/renames. |
 | [rtk](https://github.com/rtk-ai/rtk) | command-output input — compress verbose stdout | `brew install rtk`, otherwise `cargo install --git https://github.com/rtk-ai/rtk` | `rtk --help` | Upstream quick installer: `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh \| sh`; only use curl-to-shell with explicit approval. |
-| [caveman](https://github.com/juliusbrussee/caveman) | prose output — terse replies | `curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh \| bash` | Start a new session and trigger `/caveman` | Installs agent skills/commands, not a dev CLI. Compresses prose; leaves code blocks ~unchanged. Use `lite`/`full` (skip `ultra` for output a human reads). Use curl-to-shell only with explicit approval. |
-| [ponytail](https://github.com/DietrichGebert/ponytail) | code output — minimal/YAGNI code generation | Claude Code: `/plugin marketplace add DietrichGebert/ponytail` then `/plugin install ponytail@ponytail` | `/ponytail` in-session | Behavioural plugin (no dev CLI). Biases the agent toward minimal code; bites only when you generate/edit code, ~0 on prose. Use `lite`/`full` (skip `ultra` so the code stays complete and readable). |
+| [caveman](https://github.com/juliusbrussee/caveman) | prose output — terse replies | `curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh \| bash` | Start a new session and trigger `/caveman` | Installs agent skills/commands, not a dev CLI. Compresses prose; leaves code blocks ~unchanged. Use `lite`/`full`/`ultra`. Use curl-to-shell only with explicit approval. |
+| [ponytail](https://github.com/DietrichGebert/ponytail) | code output — minimal/YAGNI code generation | Claude Code: `/plugin marketplace add DietrichGebert/ponytail` then `/plugin install ponytail@ponytail` | `/ponytail` in-session | Behavioural plugin (no dev CLI). Biases the agent toward minimal code; bites only when you generate/edit code, ~0 on prose. Use `lite`/`full`/`ultra`. |
 
 ## Optional variants
 
@@ -30,6 +30,4 @@ and stack cleanly on top.
 
 Do not install every tool. Use **serena** for the code-read layer, then add `rtk` (command-heavy
 work), `caveman` (chatty prose output), and/or `ponytail` (code-generation work) only when their
-layer is the bottleneck. For `caveman` and `ponytail`, prefer the `lite`/`full` modes so output
-still reads sensibly — avoid `ultra`.
-</content>
+layer is the bottleneck.

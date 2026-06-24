@@ -62,9 +62,7 @@ Work top-down. The moment a row matches, use that tool and stop.
    dumps and long build logs (this clean repo is a lower bound).
 
 3. **About to write a long, prose-heavy answer** (explanations, write-ups, status) → consider
-   **caveman** (terse "caveman" reply style). It trims filler/hedging/pleasantries. Use **lite**
-   or **full** — modes whose output still reads naturally; skip **ultra** here (it strips so
-   hard the reply stops making sense to a human reader). Small on already-concise text and it
+   **caveman** (terse "caveman" reply style). It trims filler/hedging/pleasantries. Small on already-concise text and it
    can *grow* terse list/structured output by adding markdown — so use it for genuinely chatty
    output, not for short factual answers or anything where exact wording/order matters
    (warnings, irreversible steps, ordered procedures).
@@ -72,11 +70,9 @@ Work top-down. The moment a row matches, use that tool and stop.
 4. **About to generate or edit a chunk of code** (implement a feature, scaffold, refactor) →
    **Ponytail** (a "lazy senior dev" rules plugin that biases you toward minimal code). It
    applies YAGNI: skip unrequested abstractions/helpers, prefer stdlib + one-liners, delete over
-   add. Use **lite** or **full** — modes that still produce complete, readable code; skip
-   **ultra** (it cuts so aggressively the result can stop being sensible). In our benchmark it
-   trimmed a verbose due-date implementation by **~40% (illustrative — the size depends on how
-   much scope the baseline over-built)** by dropping helpers and a derived property nobody asked
-   for. It does ~nothing on prose — it's the mirror image of caveman.
+   add. In our benchmark it trimmed a verbose due-date implementation by **~40% (illustrative — 
+   the size depends on how much scope the baseline over-built)** by dropping helpers and a derived
+   property nobody asked for. It does ~nothing on prose — it's the mirror image of caveman.
 
 5. **None of the above / a one-file, one-line lookup** → just use plain Read/Grep/Bash. The
    tools have setup and call overhead; on tiny tasks that overhead can cost *more* than it
@@ -150,16 +146,15 @@ rtk ls / rtk tree / rtk git / rtk diff / rtk log ...
 
 ### caveman — instead of a long, chatty prose reply
 Activate terse mode (say "caveman mode" / `/caveman`) when you're about to emit a verbose
-explanation. Use **lite** or **full** so the reply stays readable; avoid **ultra** for output a
-human needs to follow. Keep code blocks, commands, API names, error strings, and
+explanation. Keep code blocks, commands, API names, error strings, and
 ordered/irreversible steps **verbatim** — caveman compresses prose, not substance.
 
 ### Ponytail — instead of writing more code than the task needs
-Enable the plugin (`/ponytail lite|full`) before generating an implementation — prefer those
-modes so the code stays complete and readable; skip **ultra**. Its rules: don't build what
-wasn't requested (YAGNI), prefer stdlib/native + one-liners, no speculative abstractions/helpers,
-delete over add, leave one runnable check. It stays out of your way on input validation at real
-trust boundaries, error handling, and security.
+Enable the plugin (`/ponytail lite|full|ultra`) before generating an implementation — prefer those
+modes so the code stays complete and readable. Its rules: don't build what wasn't requested (YAGNI),
+prefer stdlib/native + one-liners, no speculative abstractions/helpers, delete over add, leave one 
+runnable check. It stays out of your way on input validation at real trust boundaries, error handling,
+and security.
 
 ---
 
