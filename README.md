@@ -112,6 +112,15 @@ Skill paths live under `skills/<name>/` in this repo, not at the repository root
 
 ## Skills
 
+### [redesign](skills/redesign/)
+Guides explicit code redesign requests using John Ousterhout-inspired design principles: reduce complexity, make modules deeper, hide information, simplify interfaces, pull complexity downward, and improve error semantics while preserving behavior.
+
+**Triggers on:** "$redesign", "redesign this code", "redesign this module", "redesign this API". Does not trigger for ordinary review, refactoring, cleanup, or comment-writing requests.
+
+Adapted from [luoling8192/software-design-philosophy-skill](https://github.com/luoling8192/software-design-philosophy-skill), with comment-writing guidance omitted.
+
+---
+
 ### [token-saviour](skills/token-saviour/)
 Helps agents pick the most token-efficient tool for codebase exploration, symbol lookup, verbose command output, and long prose responses. Routes work to serena, graphify, rtk, caveman, or plain shell tools based on where tokens are actually being spent.
 
