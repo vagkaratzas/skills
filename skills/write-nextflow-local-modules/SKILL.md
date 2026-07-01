@@ -231,7 +231,7 @@ output:
           description: The expression to obtain the version of the tool
 topics:
   versions:
-    # identical structure to versions_<tool>: output blocks above — one entry per tool
+    # Repeat the corresponding versions_<tool> entries here.
 authors:
   - "@vagkaratzas"
 maintainers:
@@ -359,6 +359,7 @@ tool's output spec, never incidental content.
 **4. Existence only (last resort):**
 ```groovy
 { assert snapshot(
+    process.out.stable_channel,
     path(process.out.unstable_channel[0][1]).exists(),
     process.out.findAll { key, val -> key.startsWith("versions") }
 ).match() }
