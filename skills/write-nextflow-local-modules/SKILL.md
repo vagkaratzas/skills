@@ -2,11 +2,12 @@
 name: write-nextflow-local-modules
 description: |
   How to create or update local Nextflow modules for any pipeline.
-  Use this skill whenever the user asks to create, write, scaffold, add, or update a local
-  Nextflow module — even if they just say "add a module for X" or "write a module that does Y".
+  Use this skill whenever the user asks to create, write, scaffold, add, or update local
+  Nextflow modules — even if they just say "add a module for X" or "write a module that does Y".
   Local modules live at modules/local/<name>/ and resemble nf-core modules but with relaxed
   conventions: no nf-core lint required (only nextflow lint), local test fixtures instead of a
-  separate test-datasets repo, and the modern topic-channel version output instead of versions.yml.
+  separate test-datasets repo, nf-test process tests by default, and the modern topic-channel
+  version output instead of versions.yml.
 ---
 
 # Writing Local Nextflow Modules
@@ -17,6 +18,8 @@ and follow the same structural conventions, but without nf-core linting requirem
 ## Directory scaffold
 
 ```
+bin/
+└── <script_name>.py     # executable custom logic called by module script blocks
 modules/local/<module_name>/
 ├── main.nf           # process definition
 ├── meta.yml          # module documentation
@@ -27,6 +30,16 @@ modules/local/<module_name>/
     └── fixtures/             # minimal local test data
         └── <test_input>.<ext>
 ```
+
+Create `bin/` whenever the module needs custom Bash, Python, R, or other scripting logic beyond a
+simple one-line command. Keep substantial custom logic out of `modules/local/<module_name>/main.nf`
+by default; the module should expose the Nextflow interface and call a script from `bin/`.
+
+Create `tests/main.nf.test`, `tests/main.nf.test.snap`, and minimal `tests/fixtures/` data as part
+of normal local-module work. Do not skip nf-tests just because the current repository has no
+examples; use this skill's template and run `nf-test` to generate the snapshot. Omit tests only
+when the user explicitly scopes the task to process code/config without tests, and say that tests
+were intentionally omitted.
 
 ---
 
@@ -111,10 +124,21 @@ touch ${prefix}.ext
 For directories: `mkdir -p dir && touch dir/placeholder`
 For compressed files: `echo "" | gzip > ${prefix}.gz`
 
-### Script section: bash commands vs bin/ scripts
+### Script section: default to `bin/` scripts
 
-The script block either runs bash commands inline (e.g. `samtools sort ...`) or calls a script
-from the pipeline's `bin/` directory. Nextflow adds `bin/` to `PATH`, so scripts are called by name:
+Use the module `script:` block as a thin command wrapper. Simple one-line Bash commands, shell
+builtins, pipelines, or direct tool invocations may stay inline. If the logic is custom Bash,
+Python, R, or more than a trivial one-line CLI invocation, put that logic in an executable script
+under the pipeline's top-level `bin/` directory and call it from the module.
+
+Inline script bodies are acceptable only when:
+- the command is a simple one-line Bash/tool invocation such as `mkdir -p out` or
+  `samtools sort ...`, or
+- the user explicitly asks to keep the full Bash/Python body inside the module for teaching or
+  prototyping.
+
+Do not write Python heredocs or multi-line Bash programs directly inside local module `script:`
+blocks by default. Nextflow adds `bin/` to `PATH`, so scripts are called by name:
 
 ```nextflow
 script:
@@ -133,6 +157,8 @@ my_script.py \\
 - Shebang on line 1: `#!/usr/bin/env python3` / `#!/usr/bin/env Rscript` / `#!/usr/bin/env bash`
 - Dependencies declared in `environment.yml` and the container.
 - Name after what it does, not after the module — one script may serve multiple modules.
+- Keep command-line arguments explicit (`--input`, `--output`, thresholds, modes) so the module
+  interface remains clear and easy to test.
 
 ---
 
@@ -240,7 +266,9 @@ from the default channel order.
 
 ## tests/main.nf.test
 
-Always write at least two tests: one real run and one stub run.
+Always write at least two tests for each local module: one real run and one stub run. Treat tests
+and fixtures as required deliverables for complete local-module work, not a follow-up, unless the
+user explicitly says to skip tests.
 
 ```groovy
 nextflow_process {
@@ -381,6 +409,9 @@ Create the smallest real data file that exercises the module logic:
 
 Place files directly in `tests/fixtures/` and commit them alongside the module.
 
+If a module has no natural file input, create the smallest fixture needed by downstream assertions
+or use inline scalar inputs in `main.nf.test`; still create a real and stub nf-test for the process.
+
 ---
 
 ## Checklist before committing
@@ -390,9 +421,13 @@ Place files directly in `tests/fixtures/` and commit them alongside the module.
 - [ ] Version outputs use `topic: versions` — no `versions.yml` heredoc in script or stub
 - [ ] `meta.yml` has `versions_<tool>:` output sections and a `topics: versions:` block (no `versions.yml` entry)
 - [ ] Stub block only touches/creates output files — no script logic
+- [ ] Simple one-line Bash/tool commands may stay inline; substantial custom Bash/Python/R logic
+      lives in top-level `bin/`, unless the user explicitly requested inline module script bodies
 - [ ] `environment.yml` has pinned versions
 - [ ] If the module calls a `bin/` script: file exists, has a shebang, and is executable (`chmod +x`)
 - [ ] `tests/fixtures/` contains minimal real data
+- [ ] Every local module has `tests/main.nf.test` with one real run and one stub run, unless the
+      user explicitly scoped tests out
 - [ ] Snapshot strategy chosen per assertion priority (option 1 tried first); stubs always use `process.out`
 - [ ] No empty-file md5sums (`d41d8cd98f00b204e9800998ecf8427e`) in snapshots
 - [ ] Snapshot generated with `--profile +<profile> --update-snapshot`
