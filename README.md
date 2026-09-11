@@ -153,6 +153,13 @@ Creates or updates local Nextflow modules (`modules/local/<name>/`) for any pipe
 
 ---
 
+### [writing-changelog](skills/writing-changelog/)
+Writes and cleans up `CHANGELOG.md` for people coming from the previous release: only changes visible since the last tag, within-version churn collapsed into final behaviour, implementation detail (function/test names, internals, refactors, new fixtures) cut. Users first; contributor-facing differences go in an optional `Internal` section last. Follows Keep a Changelog section order with `**Breaking:**` and deprecation-removal markers.
+
+**Triggers on:** "update the changelog", "write release notes", "clean up CHANGELOG.md", preparing a release. Does not trigger for commit messages or PR descriptions.
+
+---
+
 ## License
 
 [MIT](LICENSE)
