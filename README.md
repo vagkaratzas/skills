@@ -112,6 +112,13 @@ Skill paths live under `skills/<name>/` in this repo, not at the repository root
 
 ## Skills
 
+### [plan-nf-core-releases](skills/plan-nf-core-releases/)
+Creates and revises a `ROADMAP.md` for nf-core / Nextflow pipelines: maps open GitHub issues, PRs, and the maintainer's agenda onto small single-theme releases under a changed-files budget (default < 100), batches breaking changes into one major, lists nf-core/modules and test-datasets work as external gates, verifies nf-core rules and param-naming conventions against source, and keeps traceability tables plus a dated decisions log.
+
+**Triggers on:** "create a release roadmap", "plan the next releases", "what goes into v3.0.0", "split this feature across releases", "update the roadmap". Does not trigger for changelogs or cutting a release.
+
+---
+
 ### [redesign](skills/redesign/)
 Guides explicit code redesign requests using John Ousterhout-inspired design principles: reduce complexity, make modules deeper, hide information, simplify interfaces, pull complexity downward, and improve error semantics while preserving behavior.
 
