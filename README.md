@@ -112,6 +112,22 @@ Skill paths live under `skills/<name>/` in this repo, not at the repository root
 
 ## Skills
 
+### [drawio-nf-core-metromaps](skills/drawio-nf-core-metromaps/)
+Draws, updates and exports nf-core / Nextflow pipeline metro maps in draw.io (app.diagrams.net) through Claude in Chrome. A browser helper library builds the map from a spec: parallel lanes per run mode, solid lanes for per-sample steps and dotted ones for per-family steps, nf-core module stations, and arrows snapped onto dashes. It exports light and dark PNG/SVG, swapping the logo only in memory, and an installer drops them into `docs/images`. Records the approaches that failed (Drive connector, localhost relay, script-only downloads, dark-mode colour inversion) so they are not tried again.
+
+**Triggers on:** "update the metro map", "redraw the workflow diagram", "export the metromap light/dark", editing a draw.io pipeline diagram. Not for Inkscape or nf-metro maps.
+
+---
+
+### [migrate-nf-core-static-types](skills/migrate-nf-core-static-types/)
+Guides migrating (or reviewing a migration of) an nf-core / Nextflow pipeline to static types in two stages: typed `params {}` block first (what stays in `nextflow.config`, `ext.args` closures, `Path` vs `String`, schema sync, lint exclusions, Nextflow >= 26.04), then full static types (`nextflow.enable.types`, records, typed process/workflow I/O). Ends with a PR review checklist.
+
+**Triggers on:** "add parameter types", "typed params block", "strict typing", "migrate to static types", "nextflow.enable.types", reviewing a parameter-types PR.
+
+Based on the [Nextflow static types tutorial](https://docs.seqera.io/nextflow/tutorials/static-types).
+
+---
+
 ### [plan-nf-core-releases](skills/plan-nf-core-releases/)
 Creates and revises a `ROADMAP.md` for nf-core / Nextflow pipelines: maps open GitHub issues, PRs, and the maintainer's agenda onto small single-theme releases under a changed-files budget (default < 100), batches breaking changes into one major, lists nf-core/modules and test-datasets work as external gates, verifies nf-core rules and param-naming conventions against source, and keeps traceability tables plus a dated decisions log.
 
