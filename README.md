@@ -4,9 +4,41 @@ Personal collection of agent skills for day-to-day use.
 
 ## Installation
 
-### Claude Code
+This repo is a grab bag of unrelated skills (nf-core, Python, writing, tooling). **Copy only the skills you want**; don't install the whole repo as a plugin. Every installed skill adds its description to the agent's context, and a skill that fires on the wrong task costs tokens and can steer the agent off course.
 
-Install the full plugin from the marketplace:
+Browse [Skills](#skills) below, pick one, and copy its directory into your agent's skills folder. Then start a new agent session so it loads.
+
+### Copy one skill (recommended)
+
+Without cloning. This fetches the whole skill directory, bundled `scripts/` and `references/` included:
+
+```bash
+SKILL_NAME="<name>"                      # e.g. using-depictio-nf-core
+AGENT_SKILLS_DIR="$HOME/.claude/skills"  # or ~/.codex/skills, ~/.agents/skills
+
+mkdir -p "$AGENT_SKILLS_DIR"
+curl -fsSL https://github.com/vagkaratzas/skills/archive/refs/heads/main.tar.gz \
+  | tar -xz -C "$AGENT_SKILLS_DIR" --strip-components=2 "skills-main/skills/$SKILL_NAME"
+```
+
+From a local clone:
+
+```bash
+cp -r "skills/$SKILL_NAME" "$AGENT_SKILLS_DIR/"
+```
+
+Or ask your agent to fetch `skills/<name>/` from this repository into your skills folder.
+
+To update a skill, run the same command again. To remove one, delete its directory.
+
+### Whole repo as a plugin (not recommended)
+
+This installs **every** skill in the repo. Use it only if you really want them all.
+
+<details>
+<summary>Claude Code and Codex plugin commands</summary>
+
+Claude Code:
 
 ```bash
 claude plugin marketplace add vagkaratzas/skills
@@ -15,29 +47,21 @@ claude plugin install skills@vagkaratzas-skills
 
 The marketplace registers as `vagkaratzas-skills`, so it can coexist with the `vagkaratzas` marketplace used by other repositories.
 
-Then start a new session so Claude Code loads the skills.
-
-### Codex
-
-Codex can use the same marketplace repository. Add the marketplace, then install the plugin:
+Codex:
 
 ```bash
 codex plugin marketplace add vagkaratzas/skills
 codex plugin add skills@vagkaratzas-skills
 ```
 
-Then start a new Codex session so the skills are available.
-
-### Updating
-
-Claude Code:
+Update, Claude Code:
 
 ```bash
 claude plugin marketplace update vagkaratzas-skills
 claude plugin update skills@vagkaratzas-skills
 ```
 
-Codex:
+Update, Codex:
 
 ```bash
 codex plugin marketplace upgrade vagkaratzas-skills
@@ -45,11 +69,7 @@ codex plugin remove skills@vagkaratzas-skills
 codex plugin add skills@vagkaratzas-skills
 ```
 
-### Reinstalling the Marketplace
-
-Use this if the marketplace source itself changed or the local marketplace snapshot is stale.
-
-Claude Code:
+Reinstall, if the marketplace source changed or the local snapshot is stale. Claude Code:
 
 ```bash
 claude plugin remove skills@vagkaratzas-skills
@@ -67,46 +87,9 @@ codex plugin marketplace add vagkaratzas/skills
 codex plugin add skills@vagkaratzas-skills
 ```
 
-### One Skill Only
+Plugin installs are bundle installs: neither CLI can pick a single skill from a multi-skill plugin.
 
-Plugin installs are bundle installs: installing this plugin copies every skill from this repo into the agent's skill set. The current Claude Code and Codex plugin commands do not expose a `--skill-name`-style flag for selecting one skill from a multi-skill plugin.
-
-To install only one skill, either copy that skill directory manually from a local clone, or ask your agent to fetch only `skills/<name>/` from this repository and place it in your agent skills folder.
-
-Manual copy from a local clone:
-
-```bash
-SKILL_NAME="<name>"
-AGENT_SKILLS_DIR="$HOME/.claude/skills"  # or ~/.codex/skills, ~/.agents/skills
-
-mkdir -p "$AGENT_SKILLS_DIR"
-cp -r "skills/$SKILL_NAME" "$AGENT_SKILLS_DIR/"
-```
-
-Fetch a single skill without cloning the repo:
-
-```bash
-SKILL_NAME="<name>"
-AGENT_SKILLS_DIR="$HOME/.claude/skills"  # or ~/.codex/skills, ~/.agents/skills
-
-mkdir -p "$AGENT_SKILLS_DIR/$SKILL_NAME"
-
-curl -fsSL \
-  "https://raw.githubusercontent.com/vagkaratzas/skills/main/skills/$SKILL_NAME/SKILL.md" \
-  -o "$AGENT_SKILLS_DIR/$SKILL_NAME/SKILL.md"
-```
-
-If the skill has bundled files, create the same subdirectories locally and fetch each file by its repo path. For example:
-
-```bash
-mkdir -p "$AGENT_SKILLS_DIR/$SKILL_NAME/references"
-
-curl -fsSL \
-  "https://raw.githubusercontent.com/vagkaratzas/skills/main/skills/$SKILL_NAME/references/<file>.md" \
-  -o "$AGENT_SKILLS_DIR/$SKILL_NAME/references/<file>.md"
-```
-
-Skill paths live under `skills/<name>/` in this repo, not at the repository root. There is no bulk single-directory download over `raw.githubusercontent.com`; use one `curl` per file, copy from a local clone, or ask an agent to fetch the skill directory for you. Start a new agent session after installation so the skill is loaded.
+</details>
 
 ---
 
