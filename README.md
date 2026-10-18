@@ -153,6 +153,13 @@ Based on [this](https://github.com/vagkaratzas/token-consumption-benchmark) Clau
 
 ---
 
+### [using-depictio-nf-core](skills/using-depictio-nf-core/)
+Turns nf-core pipeline results into interactive [Depictio](https://github.com/depictio/depictio) dashboards. Depictio runs locally as a Python package, with no Docker. The skill covers finding the shipped template for a pipeline version and its variables, passing the samplesheet the pipeline doesn't publish, dry-running then ingesting, and refreshing or extending projects after new runs. For maintainers, it covers what breaks when the output layout changes, drafting a template with `template compose`, contributing one upstream, and auto-ingesting runs from Nextflow. It also lists the common failures: old Python, missing samplesheet, disabled 3D-structure panel, ignored env vars, and shared login nodes.
+
+**Triggers on:** "make a Depictio dashboard for my results", "depictio ingest", "is there a Depictio template for <pipeline>", "dashboard tabs are empty", "update the Depictio template for the new release".
+
+---
+
 ### [uv-audit](skills/uv-audit/)
 Audits a Python project's dependencies for security vulnerabilities and outdated packages with uv, updates everything to the latest safe versions, runs the test suite before and after, and writes an `audit_report_YYYY-MM-DD.md`. Handles upper-bound constraints, auto-generates smoke tests if none exist, and reports conflicts it couldn't resolve.
 
