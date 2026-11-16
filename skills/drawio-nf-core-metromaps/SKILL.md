@@ -4,8 +4,9 @@ description: >
   Use when creating, updating, or exporting an nf-core / Nextflow pipeline metro map (subway-style
   workflow diagram) with draw.io (app.diagrams.net) through Claude in Chrome: redrawing the map for a
   new release, adding or removing module stations and lanes, editing an existing draw.io metro map,
-  or exporting light and dark PNG/SVG versions into docs/images. Not for maps drawn with Inkscape,
-  the nf-metro plugin, or other tools.
+  drawing a map of how several pipelines chain (stations = pipelines with their logos), or exporting
+  light and dark PNG/SVG versions into docs/images. Not for maps drawn with Inkscape, the nf-metro
+  plugin, or other tools.
 ---
 
 # nf-core metro maps in draw.io
@@ -30,6 +31,13 @@ pipeline repo. Load the `anthropic-skills:chrome-browser` skill before the first
 | Plain `#FFFFFF` / `#000000` on stations, icon labels, bars and triangles | draw.io inverts them in the dark export (black stations, unreadable icon labels) | `light-dark(X,X)`; `mm_core` writes them that way, and `MM.pinDarkColors()` fixes older pages |
 | `exportSvg` with fonts off | Maven Pro not embedded | `MM.exportAll()` passes embedFonts = true |
 | Committing draw.io SVGs as exported | nf-core `end-of-file-fixer` hook fails | `install_metromaps.sh` appends the final newline |
+| `g.removeCells(g.getChildCells(P))` to wipe a page | `getChildCells` skips hidden cells, so the hidden dark logos pile up on every rebuild and bloat the export (fixed in `MM.build`) | `g.removeCells(M.getChildren(P).slice(), true)` |
+| `eval(fn.toString().replace(...))` to patch a helper in place | Blocked by the page CSP (`unsafe-eval`), even though it worked earlier in the same tab | Paste the whole edited function again, or edit cell geometry directly |
+| `fetch` or `file_upload` for pipeline logos | `fetch` is blocked by the CSP; upload only takes files the user shared | `new Image()` with `crossOrigin='anonymous'` from `raw.githubusercontent.com/nf-core/<p>/HEAD/docs/images/...`, drawn to a canvas, `toDataURL` (see `references/meta-omics-sig-map.js`) |
+| Relabelling a library asset by setting its text to plain `FASTA` | Loses the asset's white `<font>` wrapper: the label vanishes on the black file icon | Set `<b>fasta</b>` and put `fontColor=light-dark(#FFFFFF,#FFFFFF)` in the text child's style |
+| Line colours as plain hex | draw.io's dark palette dims yellow to near-invisible | `light-dark(X,X)` per line; give the dark brown MAG line its own dark value |
+| Two lanes close together, one crossing the other at a corner | The crossing lands inside the arc: a kink. `arcSize` on an edge is twice the corner radius (80 = 40 px) | Cross on straight segments only, and keep corners 40 px clear of other lanes |
+| Parallel lanes that turn together with one `arcSize` | Gaps of about 4 px at the corner (the lanes are not concentric) | Route lanes so they only turn apart, or vary the radius per lane |
 
 ## Workflow
 
@@ -83,6 +91,17 @@ Map conventions this user approved:
 5. Hand the page over for manual tweaks. The user typically nudges the white arrows onto visible
    dashes and adds more. From then on, **no more `MM.build` on that page**.
 
+### 3b. Maps of chained pipelines (stations are pipelines, labels are their logos)
+
+Worked example: `references/meta-omics-sig-map.js` (the nf-core meta-omics SIG map: 19 pipelines, six data-type lines, four sections). It does not use `MM.build`; it draws one polyline per route, which is simpler when lines fork and rejoin.
+
+- **One polyline per route, branches start inside the trunk.** A fork is then an overlap of two identical strokes, never a butt-joint, so there are no seams. A branch that ends on a lane ends 50 px before the corner of the lane it merges into, or its square end pokes out of the arc.
+- **Rows are y values, channels are x values.** Plan them on paper first: where each line leaves a station, which vertical channel it uses, which row it ends on. Order the channels so a line that turns up never crosses the horizontals of lines that go further.
+- **Crossings only on straight segments** (see the table). When two lines must both reach the same two stations, separate their lanes or let one come from below so the crossing is clean.
+- **Logos as labels, light and dark pair.** Each station gets a light logo and a hidden dark copy at the same geometry, tagged `metromapTheme=light|dark`; `MM.exportAll` swaps them in memory. Look in each pipeline's `docs/images` for a custom-art variant (`*_custom_*`, `*_mascot_*`, `*_flat_*`, `*_tax`): names are not uniform, and the file for LIGHT backgrounds can be the one called "black" or "dark". A repo with only a light mascot logo (bacmodel) gets a dark copy by recolouring its text white on a canvas. Size labels by the "nf-core/" text, not by image width: aspect ratios differ.
+- **File icons: use the nf-core asset.** The `nf-core_components` library has FASTA/FASTQ file icons. Ask the user to drag one onto the page, then clone the group (`g.cloneCells`), move it, set the label (pinned white), delete the stand-in shapes.
+- **After the user has touched the page, never rebuild.**
+
 ### 4. One-time dark logo setup (per diagram)
 
 The dark map differs from the light one only by the logo. Keep both logos on the page, tagged:
@@ -128,3 +147,4 @@ No second page or tab is needed. The export swaps the logos in memory only.
 | `scripts/install_metromaps.sh` | Unzip the newest export into `docs/images` and fix the SVGs' final newline |
 | `scripts/dump_drawio_svg.py` | One line per cell of the diagram embedded in an exported SVG/PNG (`--xml` writes the XML) |
 | `references/proteinfamilies-v3-spec.js` | Full spec of the nf-core/proteinfamilies v3.0.0 map, with layout notes |
+| `references/meta-omics-sig-map.js` | Self-contained script for the meta-omics SIG pipeline-chain map: route polylines, station logos with dark pairs, `useAssetIcons`, export. The canonical copy lives in meta-omics-sig's `update-metro-map` skill |

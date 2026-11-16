@@ -92,7 +92,8 @@
     const V = (val, x, y, w, h, st, par) => g.insertVertex(par || P, null, val, x, y, w, h, st);
     M.beginUpdate();
     try {
-      g.removeCells(g.getChildCells(P), true);
+      // getChildCells skips hidden cells (the dark logo copy): clear with getChildren
+      g.clearSelection(); g.removeCells(M.getChildren(P).slice(), true);
       // boxes: [label, x, y, w, h]
       for (const b of spec.boxes || []) V(b[0], b[1], b[2], b[3], b[4], 'rounded=1;arcSize=6;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=#E6E6E6;fillColor=#BDBDBD;align=left;verticalAlign=top;fontSize=50;spacing=0;fillStyle=solid;spacingTop=5;spacingLeft=12;fontStyle=1;fontColor=light-dark(#333333,#CCCCCC);');
       // lines: [colour, dotted, centrePoints, laneOffset, arrows=true]
