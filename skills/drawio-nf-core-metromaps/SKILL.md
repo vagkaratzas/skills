@@ -37,6 +37,7 @@ pipeline repo. Load the `anthropic-skills:chrome-browser` skill before the first
 | Relabelling a library asset by setting its text to plain `FASTA` | Loses the asset's white `<font>` wrapper: the label vanishes on the black file icon | Set `<b>fasta</b>` and put `fontColor=light-dark(#FFFFFF,#FFFFFF)` in the text child's style |
 | Line colours as plain hex | draw.io's dark palette dims yellow to near-invisible | `light-dark(X,X)` per line; give the dark brown MAG line its own dark value |
 | Two lanes close together, one crossing the other at a corner | The crossing lands inside the arc: a kink. `arcSize` on an edge is twice the corner radius (80 = 40 px) | Cross on straight segments only, and keep corners 40 px clear of other lanes |
+| Embedding raw pipeline logos (about 30 KB each, three copies per logo) | PNG 1.8 MB, SVG 2.5 MB | Palette-quantize them in the page (`quant` in `references/meta-omics-sig-map.js`: premultiplied RGBA, true-average palette, falls back to the original PNG when the error is too high): about 40% smaller exports, same pixels. Quantizing straight RGBA merges nearly transparent pixels into opaque white and the text goes grey |
 | Parallel lanes that turn together with one `arcSize` | Gaps of about 4 px at the corner (the lanes are not concentric) | Route lanes so they only turn apart, or vary the radius per lane |
 
 ## Workflow
@@ -100,6 +101,7 @@ Worked example: `references/meta-omics-sig-map.js` (the nf-core meta-omics SIG m
 - **Crossings only on straight segments** (see the table). When two lines must both reach the same two stations, separate their lanes or let one come from below so the crossing is clean.
 - **Logos as labels, light and dark pair.** Each station gets a light logo and a hidden dark copy at the same geometry, tagged `metromapTheme=light|dark`; `MM.exportAll` swaps them in memory. Look in each pipeline's `docs/images` for a custom-art variant (`*_custom_*`, `*_mascot_*`, `*_flat_*`, `*_tax`): names are not uniform, and the file for LIGHT backgrounds can be the one called "black" or "dark". A repo with only a light mascot logo (bacmodel) gets a dark copy by recolouring its text white on a canvas. Size labels by the "nf-core/" text, not by image width: aspect ratios differ.
 - **File icons: use the nf-core asset.** The `nf-core_components` library has FASTA/FASTQ file icons. Ask the user to drag one onto the page, then clone the group (`g.cloneCells`), move it, set the label (pinned white), delete the stand-in shapes.
+- **A route that must cross other lanes can hop over them**: add `jumpStyle=arc;jumpSize=20` to that edge's style and draw it last. The hop survives the SVG and PNG export.
 - **After the user has touched the page, never rebuild.**
 
 ### 4. One-time dark logo setup (per diagram)
