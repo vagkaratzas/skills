@@ -50,6 +50,9 @@ pipeline repo. Load the `anthropic-skills:chrome-browser` skill before the first
 | Every logo stored at one fixed width (360 px) | A wide logo drawn at 320 px has almost no headroom and looks blurry next to the others | Store each logo at 2x its drawn width (`check` flags < 1.9x) |
 | A logo composed at full size (thousands of px) and left for draw.io to scale down | Dark-mode text came out grey (221 vs 255 on the other logos) | Shrink on a canvas to 2x the drawn width first, then whiten the neutral text pixels after the shrink |
 | Parallel lanes that turn together with one `arcSize` | Gaps of about 4 px at the corner (the lanes are not concentric) | Route lanes so they only turn apart, or vary the radius per lane |
+| A line that zigzags or hairpins to reach a station two rows away | Reviewer: swap the stations' rows so the line runs straight (#4561: viralmetagenome moved above mag/magmap, the red line ran straight into phyloplace and its hairpin went) | Before adding a jog, try reordering rows or stations; a station row next to its downstream station's row lets the line cross the trunk on a straight segment |
+| Stacked boxes in one column with different left or right edges | Reviewer: "could subgraph 4 be left aligned with 3?" (#4561) | Boxes in one column share both edges: one x, and one width from the widest content of the column |
+| `MM.downloadButton()` after editing the page, without a fresh export | The zip holds the previous `MM.files`: the user downloaded the old layout | Always `MM.exportAll()` → previews → `MM.waitSaved()` → `MM.downloadButton()`, in that order, after every change; open the downloaded PNG and check it shows the change before installing |
 
 ## Workflow
 
@@ -83,8 +86,9 @@ Map conventions this user approved:
 
 ### 2. Open the diagram
 
-1. Ask for the draw.io link (Drive) and the pipeline repo path. Prefer working on a copy of the
-   file. Open the link in a new tab.
+1. Ask for the draw.io link (Drive) and the pipeline repo path. Once the user names a canonical
+   Drive file, edit that file (not a blank diagram or a copy) and let the user do the download;
+   install the exports only after they confirm it. Open the link in a new tab.
 2. `resize_window` to about 1600×1300, since the default viewport is too small to review.
 3. Paste `scripts/mm_core.js` into `javascript_tool`. Do this again after every page reload.
 4. Get the old map's structure cheaply: run `python3 scripts/dump_drawio_svg.py
