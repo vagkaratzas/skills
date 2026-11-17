@@ -23,7 +23,8 @@ pipeline repo. Load the `anthropic-skills:chrome-browser` skill before the first
 | Google Drive connector on the `.drawio` file ID from the `#G<id>` URL | "Requested entity was not found" | Edit in the open draw.io tab |
 | `fetch` from app.diagrams.net to a localhost relay | Blocked by CSP; a relay server also trips the auto-mode classifier | Do not move data through the network |
 | Reading big data out through `javascript_tool` output | Cut at ~1.5k characters; anything that looks like a URL, token or `k=v` returns `[BLOCKED: ...]` | Return short summaries; read the diagram locally from the repo's exported SVG/PNG with `scripts/dump_drawio_svg.py` |
-| Pasting large files (images) into `javascript_tool` | Very expensive | Put a temporary `<input type=file>` on the page (`MM.logoInput()`), then `find` + `file_upload` |
+| Pasting large files (images) into `javascript_tool` | Very expensive | Put a temporary `<input type=file>` on the page (`MM.logoInput()`), then `find` + `file_upload`. It only takes paths this session may read (a file in another repo was refused): copy the file into the scratchpad first |
+| Loading the helper script from a file (`<input type=file>` + `eval`) or from localhost | `eval` and `fetch` to localhost are blocked by the page CSP | Paste the script as the `javascript_tool` code itself; dropping comment-only lines cuts about 20% |
 | `window.ui` / `App._instances` | Not exposed | `MM.getUi()` hooks `EditorUi.prototype.windowResized` and `getCurrentFile`, then fires synthetic `resize` and `focus` events; no click needed. Hooking `refresh` does not work, because a resize never reaches it |
 | `a.click()` download from `javascript_tool` | Silently dropped | `MM.downloadButton()`, then click the button with the computer tool. With "Ask where to save" on, Chrome opens a native Save dialog you cannot see: **ask the user to press Save** |
 | Clicking the draw.io status bar "Unsaved changes. Click here to save" right after a large build | Froze the renderer and disconnected the extension | `MM.waitSaved()` and let autosave finish; if it stays unsaved, ask the user to save |
@@ -39,6 +40,10 @@ pipeline repo. Load the `anthropic-skills:chrome-browser` skill before the first
 | Line colours as plain hex | draw.io's dark palette dims yellow to near-invisible | `light-dark(X,X)` per line; give the dark brown MAG line its own dark value |
 | Two lanes close together, one crossing the other at a corner | The crossing lands inside the arc: a kink. `arcSize` on an edge is twice the corner radius (80 = 40 px) | Cross on straight segments only, and keep corners 40 px clear of other lanes |
 | Embedding raw pipeline logos (about 30 KB each, three copies per logo) | PNG 1.8 MB, SVG 2.5 MB | Palette-quantize them in the page (`quant` in `references/meta-omics-sig-map.js`: premultiplied RGBA, true-average palette, falls back to the original PNG when the error is too high): about 40% smaller exports, same pixels. Quantizing straight RGBA merges nearly transparent pixels into opaque white and the text goes grey |
+| Box sizes and gaps typed in by hand | Review comments on nf-core/website#4561, one round each: gaps between boxes unequal, bottom padding too large in one box and too small in another, stations unevenly spaced, one box's corners rounder | Compute each box from its content (fixed bottom `PAD`, fixed `GAP`, see `references/meta-omics-sig-map.js`), then `await MM.check()` before every export |
+| Relative `arcSize` on boxes | Each box gets a different corner radius, by its size | `absoluteArcSize=1;arcSize=20` on every box (`mm_core` does this now) |
+| Every logo stored at one fixed width (360 px) | A wide logo drawn at 320 px has almost no headroom and looks blurry next to the others | Store each logo at 2x its drawn width (`check` flags < 1.9x) |
+| A logo composed at full size (thousands of px) and left for draw.io to scale down | Dark-mode text came out grey (221 vs 255 on the other logos) | Shrink on a canvas to 2x the drawn width first, then whiten the neutral text pixels after the shrink |
 | Parallel lanes that turn together with one `arcSize` | Gaps of about 4 px at the corner (the lanes are not concentric) | Route lanes so they only turn apart, or vary the radius per lane |
 
 ## Workflow
@@ -121,6 +126,11 @@ No second page or tab is needed. The export swaps the logos in memory only.
 
 ### 5. Export and install
 
+0. **Lint and review before every export**: `await MM.check()` must return `ok` (box gaps, bottom
+   padding, absolute corner radius, station spacing, dark logo text white, logo resolution; it
+   also works on hand-edited pages). Then look for what the check cannot see, which reviewers
+   also flagged: stations meant to share a row at exactly the same y, stations centred in their
+   box rather than pushed wide, all logos equally sharp at 100% zoom.
 1. `await MM.exportAll('<pipeline>_workflow')`. It returns file sizes and gives light and dark
    PNG + SVG: transparent, scale 1, border 0, the editable diagram embedded, fonts embedded.
 2. Check the dark render: `MM.preview('<pipeline>_workflow_dark.png')` and take a screenshot. Run
@@ -145,9 +155,9 @@ No second page or tab is needed. The export swaps the logos in memory only.
 
 | File | Purpose |
 |---|---|
-| `scripts/mm_core.js` | Browser library (`window.MM`): `getUi`, `harvestImages`, `build`, `view`, `pinDarkColors`, `logoInput`, `logoCandidates`, `addDarkLogo`, `exportAll`, `preview`, `downloadButton`, `waitSaved`, and the pure helpers `offset` (parallel lanes) and `arrowPoints` (arrows snapped onto dashes) |
+| `scripts/mm_core.js` | Browser library (`window.MM`): `getUi`, `harvestImages`, `build`, `view`, `check` (layout lint), `pinDarkColors`, `logoInput`, `logoCandidates`, `addDarkLogo`, `exportAll`, `preview`, `downloadButton`, `waitSaved`, and the pure helpers `offset` (parallel lanes) and `arrowPoints` (arrows snapped onto dashes) |
 | `scripts/test_mm_core.js` | `node scripts/test_mm_core.js`: self-check for the geometry helpers |
 | `scripts/install_metromaps.sh` | Unzip the newest export into `docs/images` and fix the SVGs' final newline |
 | `scripts/dump_drawio_svg.py` | One line per cell of the diagram embedded in an exported SVG/PNG (`--xml` writes the XML) |
 | `references/proteinfamilies-v3-spec.js` | Full spec of the nf-core/proteinfamilies v3.0.0 map, with layout notes |
-| `references/meta-omics-sig-map.js` | Self-contained script for the meta-omics SIG pipeline-chain map: route polylines, station logos with dark pairs, `useAssetIcons`, export. The canonical copy lives in meta-omics-sig's `update-metro-map` skill |
+| `references/meta-omics-sig-map.js` | Self-contained script for the meta-omics SIG pipeline-chain map: route polylines, station logos with dark pairs (stored at 2x), content-sized boxes, `check`, `useAssetIcon`, export. The canonical copy lives in meta-omics-sig's `update-metro-map` skill |

@@ -95,7 +95,7 @@
       // getChildCells skips hidden cells (the dark logo copy): clear with getChildren
       g.clearSelection(); g.removeCells(M.getChildren(P).slice(), true);
       // boxes: [label, x, y, w, h]
-      for (const b of spec.boxes || []) V(b[0], b[1], b[2], b[3], b[4], 'rounded=1;arcSize=6;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=#E6E6E6;fillColor=#BDBDBD;align=left;verticalAlign=top;fontSize=50;spacing=0;fillStyle=solid;spacingTop=5;spacingLeft=12;fontStyle=1;fontColor=light-dark(#333333,#CCCCCC);');
+      for (const b of spec.boxes || []) V(b[0], b[1], b[2], b[3], b[4], 'rounded=1;absoluteArcSize=1;arcSize=20;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=#E6E6E6;fillColor=#BDBDBD;align=left;verticalAlign=top;fontSize=50;spacing=0;fillStyle=solid;spacingTop=5;spacingLeft=12;fontStyle=1;fontColor=light-dark(#333333,#CCCCCC);');
       // lines: [colour, dotted, centrePoints, laneOffset, arrows=true]
       const arrows = [];
       for (const l of spec.lines || []) {
@@ -272,6 +272,48 @@
     return 'click the "Download metro maps" link';
   }
 
+  // Layout lint, run before every export (also on hand-edited pages): 'ok' or the problems found.
+  // Each rule is a review comment a map once got on nf-core/website: boxes (fillColor #BDBDBD)
+  // with equal gaps per row and equal bottom padding, one ABSOLUTE corner radius, evenly spaced
+  // stations (arcSize=50 pills) in a box whose stations share one x or one y, white text on dark
+  // logos (metromapTheme=dark), and logos stored at >= 1.9x their drawn width (else blurry).
+  async function check(tol = 2) {
+    const g = (await getUi()).editor.graph, P = g.getDefaultParent(), cells = g.model.getChildren(P).filter(c => c.vertex), out = [], G = c => c.geometry;
+    const isBox = c => /fillColor=#BDBDBD/.test(c.style || ''), boxes = cells.filter(isBox), name = b => String(b.value).replace(/<[^>]*>/g, '').slice(0, 12);
+    const inside = (c, b) => G(c).x >= G(b).x && G(c).y >= G(b).y && G(c).x + G(c).width <= G(b).x + G(b).width && G(c).y + G(c).height <= G(b).y + G(b).height;
+    const radii = new Set(boxes.map(b => (/absoluteArcSize=1/.test(b.style) ? 'abs' : 'rel') + (/arcSize=(\d+)/.exec(b.style) || [])[1]));
+    if (radii.size > 1 || [...radii].some(r => r.startsWith('rel'))) out.push('box corners: use one absoluteArcSize=1;arcSize=N (relative radii differ with box size): ' + [...radii]);
+    const rows = {}; for (const b of boxes) (rows[G(b).y] = rows[G(b).y] || []).push(b);
+    for (const row of Object.values(rows)) {
+      row.sort((a, b) => G(a).x - G(b).x);
+      const gaps = row.slice(1).map((b, i) => Math.round(G(b).x - G(row[i]).x - G(row[i]).width));
+      if (gaps.length > 1 && Math.max(...gaps) - Math.min(...gaps) > tol) out.push('gaps between boxes differ: ' + gaps);
+    }
+    const pads = boxes.map(b => { const inner = cells.filter(c => c !== b && !isBox(c) && inside(c, b)); return inner.length ? [name(b), Math.round(G(b).y + G(b).height - Math.max(...inner.map(c => G(c).y + G(c).height)))] : null; }).filter(Boolean);
+    if (pads.length && Math.max(...pads.map(p => p[1])) - Math.min(...pads.map(p => p[1])) > tol) out.push('bottom padding differs: ' + pads.map(p => p.join(' ')).join(', '));
+    for (const b of boxes) {
+      const st = cells.filter(c => /arcSize=50/.test(c.style || '') && inside(c, b)).map(c => [G(c).x + G(c).width / 2, G(c).y + G(c).height / 2]);
+      for (const [k, o] of [[0, 1], [1, 0]]) { // one column (same x): y spacing; one row (same y): x spacing
+        if (st.length < 3 || new Set(st.map(s => Math.round(s[k]))).size > 1) continue;
+        const v = st.map(s => s[o]).sort((p, q) => p - q), d = v.slice(1).map((x, i) => Math.round(x - v[i]));
+        if (Math.max(...d) - Math.min(...d) > tol) out.push(`box ${name(b)} stations unevenly spaced: ` + d);
+      }
+    }
+    for (const c of cells.filter(c => /metromapTheme=/.test(c.style || ''))) {
+      const m = /image=([^;]+)/.exec(c.style); if (!m) continue;
+      const im = new Image(); await new Promise((res, rej) => { im.onload = res; im.onerror = rej; im.src = m[1].replace(/^data:([^,;]+),/, 'data:$1;base64,'); });
+      const tag = `${/metromapTheme=(\w+)/.exec(c.style)[1]} logo at ${Math.round(G(c).x)},${Math.round(G(c).y)}`;
+      if (im.naturalWidth < 1.9 * G(c).width) out.push(`${tag} stored at only ${(im.naturalWidth / G(c).width).toFixed(1)}x its drawn width`);
+      if (!/metromapTheme=dark/.test(c.style)) continue;
+      const cv = Object.assign(document.createElement('canvas'), { width: im.naturalWidth, height: im.naturalHeight }), x = cv.getContext('2d'); x.drawImage(im, 0, 0);
+      const a = x.getImageData(0, 0, cv.width, cv.height).data, v = [];
+      for (let k = 0; k < a.length; k += 4) if (a[k + 3] > 250 && Math.max(a[k], a[k + 1], a[k + 2]) - Math.min(a[k], a[k + 1], a[k + 2]) < 30 && a[k] > 150) v.push(a[k]);
+      v.sort((p, q) => p - q); const p90 = v[Math.floor(v.length * 0.9)];
+      if (v.length > 50 && p90 < 245) out.push(`${tag}: text not white (${p90})`);
+    }
+    return out.length ? out.join(' | ') : 'ok';
+  }
+
   // Wait for draw.io's Drive autosave; returns the status bar text
   async function waitSaved(seconds = 40) {
     const f = (await getUi()).getCurrentFile();
@@ -279,7 +321,7 @@
     return document.querySelector('.geStatus')?.innerText || '';
   }
 
-  const MM = { getUi, offset, arrowPoints, harvestImages, build, view, pinDarkColors, logoInput, logoCandidates, addDarkLogo, exportAll, preview, downloadButton, waitSaved, COLORS, LANE, images: {}, files: {} };
+  const MM = { getUi, offset, arrowPoints, harvestImages, build, view, check, pinDarkColors, logoInput, logoCandidates, addDarkLogo, exportAll, preview, downloadButton, waitSaved, COLORS, LANE, images: {}, files: {} };
   root.MM = MM;
   if (typeof module !== 'undefined') module.exports = MM;
 })(typeof window !== 'undefined' ? window : globalThis);
